@@ -25,7 +25,6 @@ import replay  # noqa: E402
 import steps  # noqa: E402
 import subtitles  # noqa: E402
 
-EMBED_LIMIT = 200 * 1024 * 1024
 
 
 def emit(**ev):
@@ -150,6 +149,9 @@ def main():
     media = Path(job["target"]) if job["kind"] == "file" else download(job, stg)
     duration = job.get("duration") or 0
 
+    if "replay" in keep and "video" not in keep and media.stat().st_size > steps.EMBED_LIMIT:
+        raise RuntimeError(steps.too_big_message(media.stat().st_size))  # before any slow work
+
     wav = make_audio(media, stg, duration) if "audio" in pipe else None
     segments, info, device, lang = [], None, "", ""
     if "transcribe" in pipe:
@@ -175,20 +177,10 @@ def main():
         files.append("transcript.md")
     if "replay" in keep:
         stage("captions", 0, "Building captions…")
-        embed = (video_dest if video_dest else media).stat().st_size <= EMBED_LIMIT
-        video_name = ""
-        if "video" in keep:
-            video_name = video_dest.name
-        elif not embed:
-            # Too large to embed, save video next to index.html
-            video_dest = stg / ("video" + media.suffix)
-            if job["kind"] == "file":
-                shutil.copy2(media, video_dest)
-            else:
-                media.replace(video_dest)
-            files.append(video_dest.name)
-            video_name = video_dest.name
-            notice = "The video was too large to embed in the page (over 200 MB), so it was kept next to index.html. Keep both files together."
+        embed = (video_dest if video_dest else media).stat().st_size <= steps.EMBED_LIMIT
+        video_name = video_dest.name if "video" in keep else ""
+        if "video" in keep and not embed:
+            notice = "The video is over %d MB, so the replay plays from the saved video file. Keep both files together." % (steps.EMBED_LIMIT // 1_048_576)
         # When embed=True and "video" not in keep, video_name stays "" and we read from media
         read_from = video_dest if video_dest else media
         replay.write_replay(stg / "index.html", job["title"], read_from, segments, embed, video_name)

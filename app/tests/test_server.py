@@ -244,7 +244,10 @@ class Jobs(ServerCase):
         self.assertEqual(evs[-1]["type"], "done", evs[-3:])
         folder = self.out / "con video"
         self.assertEqual(sorted(p.name for p in folder.iterdir()), sorted(["video.mp4", "index.html"]))
-        self.assertIn('id="video-data"', (folder / "index.html").read_text(encoding="utf-8"))
+        html = (folder / "index.html").read_text(encoding="utf-8")
+        self.assertIn('id="video-data"', html)
+        # the page does not depend on the saved video: it has no src pointing at it
+        self.assertNotIn('src="video.mp4"', html)
 
 
 class CancelAfterPublish(unittest.TestCase):
@@ -280,3 +283,52 @@ class CancelAfterPublish(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(CLIP and os.path.exists(CLIP), "set AE_TEST_CLIP to a short clip with speech")
+class SmallEmbedLimit(ServerCase):
+    """The server and its worker both run with a tiny embed limit, so any clip is 'too big'."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls._old = os.environ.get("AE_EMBED_LIMIT")
+        os.environ["AE_EMBED_LIMIT"] = "1000"
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        if cls._old is None:
+            os.environ.pop("AE_EMBED_LIMIT", None)
+        else:
+            os.environ["AE_EMBED_LIMIT"] = cls._old
+
+    def test_replay_only_over_the_limit_stops_before_any_slow_work_and_saves_nothing(self):
+        self.call("/api/check", {"source": CLIP})
+        code, r = self.call("/api/start", {"source": CLIP, "outputs": ["replay"], "folder_name": "grande",
+                                           "model": "small", "quality": "best"})
+        self.assertTrue(r["ok"], r)
+        evs = self.events()
+        self.assertEqual(evs[-1]["type"], "error", evs[-3:])
+        self.assertIn("limit", evs[-1]["message"])
+        self.assertIn("Save video", evs[-1]["message"])
+        self.assertNotIn("transcribe", [e.get("stage") for e in evs if e["type"] == "stage"])
+        self.assertFalse((self.out / "grande").exists())
+        for _ in range(50):  # the server removes the temporary folder just after reporting the error
+            if not list(self.out.iterdir()):
+                break
+            time.sleep(0.1)
+        self.assertEqual([p.name for p in self.out.iterdir()], [])
+
+    def test_replay_plus_video_over_the_limit_plays_from_the_saved_video(self):
+        self.call("/api/check", {"source": CLIP})
+        code, r = self.call("/api/start", {"source": CLIP, "outputs": ["video", "replay"], "folder_name": "grande3",
+                                           "model": "small", "quality": "best"})
+        self.assertTrue(r["ok"], r)
+        evs = self.events()
+        self.assertEqual(evs[-1]["type"], "done", evs[-3:])
+        folder = self.out / "grande3"
+        self.assertEqual(sorted(p.name for p in folder.iterdir()), sorted(["video.mp4", "index.html"]))
+        html = (folder / "index.html").read_text(encoding="utf-8")
+        self.assertIn('src="video.mp4"', html)
+        self.assertNotIn('id="video-data"', html)
