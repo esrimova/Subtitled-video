@@ -38,7 +38,7 @@ This repository includes a setup skill: [`skills/setup-subtitled-video/SKILL.md`
 
 1. Double-click `run_web.bat`. A browser tab opens with the app. Keep the black window open while you use it: closing it stops the app. (If the tab doesn't open, copy the address shown in the black window into your browser.)
 2. **Video source:** paste a video link (it must start with `http://` or `https://`, and it must be one single video, not a playlist or channel) or the full path to a video file on your PC, for example `C:\Videos\lesson.mp4`. Click **Check** (or press Enter).
-3. The app checks the video (see [What the app checks](#what-the-app-checks)) and, if it is usable, shows its **title**, whether it is a **Link** or a **File**, and its **length**. If it isn't, you get a plain explanation and can try another source. Checking a link can take up to a minute.
+3. **Check** validates the source before anything is downloaded or processed: your tools are installed, a file is readable media, a link points to a single finished video the app can reach, and what the video contains (audio, video, available resolutions) decides which options you can pick next. The details are in [What the app checks](#what-the-app-checks). If the source passes, the app shows its **title**, whether it is a **Link** or a **File**, and its **length** ("Length unknown" when the source doesn't say). If it fails, you get a plain explanation and can try another source. Checking a link can take up to a minute.
 4. **Choose what to save.** You can tick more than one. **Save video** is ticked by default, and **Start** stays disabled until at least one box is ticked.
 
    | Option | What you get |
