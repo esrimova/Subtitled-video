@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video to Transcript</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <section id="idle-section">
+      <div class="card">
+        <h1>Video to Transcript</h1>
+        <label for="source" class="visually-hidden">Video source</label>
+        <input type="text" id="source" placeholder="Paste a video link or a file path">
+        <button id="check-btn" type="button">Check</button>
+        <div id="checking" hidden>Checking video… <span class="spinner"></span></div>
+      </div>
+    </section>
+
+    <section id="options" hidden>
+      <div class="card">
+        <div id="summary"></div>
+        <div id="no-audio-banner" class="warning-banner" hidden>This video has no audio track.</div>
+        <div id="outputs"></div>
+        <div id="plan-notes" class="muted"></div>
+        <label for="folder-name" class="visually-hidden">Folder name</label>
+        <input type="text" id="folder-name" placeholder="Folder name (leave empty for automatic)">
+        <div id="quality-row" hidden><label for="quality">Video quality</label> <select id="quality"></select> <span id="quality-note" class="muted"></span></div>
+        <div id="model-row" hidden>
+          <label for="model" class="visually-hidden">Model size</label>
+          <select id="model">
+            <option value="small">Faster (small)</option>
+            <option value="medium" selected>More accurate (medium)</option>
+          </select>
+        </div>
+        <button id="start-btn" type="button" disabled>Start</button>
+      </div>
+    </section>
+
+    <section id="running" hidden>
+      <div class="card">
+        <ul id="stages"></ul>
+        <progress id="bar" max="100" value="0"></progress>
+        <div id="stage-msg" class="muted"></div>
+        <div id="eta" class="muted"></div>
+        <div id="live-transcript" class="transcript-box"></div>
+        <button id="cancel-btn" type="button">Cancel</button>
+      </div>
+    </section>
+
+    <section id="done" hidden>
+      <div class="card">
+        <h2 id="done-title"></h2>
+        <ul id="done-files"></ul>
+        <a id="open-replay" target="_blank" hidden>Open replay</a>
+        <button id="open-folder-btn" type="button">Open folder</button>
+        <button id="new-btn" type="button">New video</button>
+      </div>
+    </section>
+
+    <div id="error" class="error-box" hidden></div>
+
+    <section id="stopped" hidden>
+      <div class="card">
+        <p id="stopped-msg" class="muted"></p>
+        <button id="retry-btn" type="button">Retry</button>
+      </div>
+    </section>
+  </main>
+  <script src="app_api.js"></script>
+  <script src="app_ui.js"></script>
+</body>
+</html>
