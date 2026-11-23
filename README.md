@@ -1,15 +1,15 @@
 # Subtitled-video
 
-Turn any video into a searchable transcript and a captioned player, entirely on your own PC.
+Turn any video into a transcript and a captioned player, entirely on your own PC.
 
-Paste a video link (or drop a file), and Subtitled-video downloads it, extracts the audio, transcribes the speech locally with Whisper, and builds:
+Give it a video link or a video file on your computer. It downloads the video (for links), extracts the audio, transcribes the speech locally with Whisper, and saves whichever of these you choose:
 
-- an audio file and a plain-text transcript,
-- a **replay page** (`index.html`): the video on the left, the subtitles and a clickable transcript on the right, with settings for how the subtitles look.
+- the **video**,
+- the **audio** (`audio.wav`),
+- a timestamped **transcript** (`transcript.md`),
+- a **captioned replay** (`index.html` + `captions.srt`): a web page with the video on the left, and the subtitles and a clickable transcript on the right. You can change how the subtitles look.
 
-You choose which of these to keep.
-
-Nothing is sent to an online service for transcription. The replay page works offline.
+The speech is transcribed on your PC, not sent to an online service. The language is detected automatically. A graphics card (NVIDIA/CUDA) is used when available, otherwise the processor.
 
 ## Requirements
 
@@ -36,45 +36,62 @@ This repository includes a setup skill: [`skills/setup-subtitled-video/SKILL.md`
 
 ## How to use the app
 
-1. Double-click `run_web.bat`. A browser tab opens with the app (keep the black window open while you use it; closing it stops the app).
-2. **Paste a video link** (for example a YouTube URL) **or a file path** into the box, then click **Check**. The app looks at the video and shows its title and length.
-3. **Choose what you want to save** with the checkboxes:
-   - **Save video** - the video file (`video.mp4`).
-   - **Save audio** - the audio of the video (`audio.wav`).
-   - **Save transcript** - a timestamped text transcript (`transcript.md`).
-   - **Create captioned replay** - the replay page (`index.html`) plus subtitles (`captions.srt`). It keeps the video, since the page plays it.
+1. Double-click `run_web.bat`. A browser tab opens with the app. Keep the black window open while you use it: closing it stops the app. (If the tab doesn't open, copy the address shown in the black window into your browser.)
+2. **Video source:** paste a video link (it must start with `http://` or `https://`, and it must be one single video, not a playlist or channel) or the full path to a video file on your PC, for example `C:\Videos\lesson.mp4`. Click **Check** (or press Enter).
+3. The app checks the video and shows its **title**, whether it is a **Link** or a **File**, and its **length**. Checking a link can take up to a minute.
+4. **Choose what to save.** You can tick more than one. **Save video** is ticked by default, and **Start** stays disabled until at least one box is ticked.
 
-   A note under the checkboxes tells you what will be kept. If the video has no audio, only the video option is available.
-4. **Folder name:** type the name of the folder where your files will go, or leave it blank and the app names the folder from the video title (plus the video ID when there is one, and a number if that name is already taken). Folders are created inside the `output` folder next to `run_web.bat` (for example `output\My lecture`). If that name already exists, the app asks you to choose another, so nothing is overwritten.
-5. Optional: if you chose a transcript or a replay, pick the **model size**: *Faster (small)* or *More accurate (medium)*. For links, you can also pick the **video quality**.
-6. Click **Start**. The app shows each stage, a progress bar, an estimated time and the transcript as it is written. **Cancel** stops it.
-7. When it finishes, click **Open replay** to watch it in your browser, **Open folder** to see the files, or **New video** to start again.
+   | Option | What you get |
+   | --- | --- |
+   | **Save video** | The video: `video.mp4` for links, or a copy of your file with its own extension for files |
+   | **Save audio** | `audio.wav` |
+   | **Save transcript** | `transcript.md`: the title, source, detected language, length, and every line with its time |
+   | **Create captioned replay** | `index.html` and `captions.srt` (standard subtitle file). The replay needs the video, so it is kept too |
 
-The first run is slower: it downloads the speech model (and installs the Python packages).
+   A note under the boxes says what will be kept. If you pick only a transcript or the replay, the audio is used temporarily and then deleted. Options that don't apply are greyed out with a reason: a video with no audio track can only be saved as a video, and an audio-only file can't be saved as a video or a replay.
+5. **Folder name:** type a name, for example `My lesson`, or leave it blank and the app names the folder from the video title (plus the video ID for links, and a number if that name is taken). Folders are created inside the `output` folder next to `run_web.bat`, for example `output\My lesson`. If a folder with the name you typed already exists, the app asks you to choose another one: it never overwrites anything.
+6. **Video quality (resolution):** for links, when you are saving the video or the replay, a menu lets you choose the resolution. The first choice is **Best available** (it shows the tallest resolution), followed by each available resolution, such as `1080p (~250 MB)` or `720p`, with an approximate download size when the site reports it. A lower resolution downloads faster and uses less disk space. If the site offers a single quality, the menu is disabled and says so. If you save only audio or a transcript from a link, only the audio is downloaded and no quality is needed.
+7. **Model size:** shown when you choose a transcript or a replay. **More accurate (medium)** is the default; **Faster (small)** finishes sooner with less accuracy. The first time you use each one, the model is downloaded.
+8. Click **Start**. The app shows the steps (Downloading, Extracting audio, Transcribing, Building captions), a progress bar, an estimated time left, and the transcript as it appears. Only one video can be processed at a time. **Cancel** stops the job and leaves no half-finished folder. If you reload the page while a job is running, it reconnects to it.
+9. When it finishes, you see the list of files saved. Click **Open replay** to watch the captioned video in your browser, **Open folder** to see the files in Explorer, or **New video** to start another one. If something stops the job, the app tells you why and offers **Retry**.
 
-## The replay page
+### Videos the app can't process
 
-Open `index.html` from the folder you created (or use **Open replay**). It works offline. To watch it later, open `index.html` from the output folder and keep `video.mp4` in that same folder; if you copy or share it, copy the whole folder.
+The app checks first and tells you plainly when it can't continue:
 
-- **Layout:** the video is on the left (68% of the width), the subtitles and the transcript on the right (28%), with a 4% gap. The proportions are percentages, so they hold at any window size or resolution.
-- **Controls:**
-  - **CC** shows or hides the subtitles.
-  - **Speed** goes from 0.5x to 1.5x.
-  - **Replay line** repeats the current subtitle line.
-  - **Fullscreen** makes the whole player fullscreen. Use this button, not the video's own one, so the subtitles stay visible.
-  - Click any line of the transcript to jump to that moment.
-- **Subtitle settings:** click **Settings** to change the subtitles live:
-  - **Font** (system default, serif, monospace, sans-serif, comic)
+- a playlist or channel link (paste one video instead),
+- a live stream that hasn't ended,
+- a video protected by DRM,
+- a site that isn't supported, or a link that can't be reached,
+- a private video, or one that needs you to be logged in. For those, export your browser cookies to a file named `cookies.txt` (Netscape format) in the project folder (next to `run_web.bat`) and try again,
+- a path that is a folder, an image, or a file ffmpeg can't read.
+
+### Command-line version
+
+`run.bat` does the same job in a text window: it asks for the link or file path and for a folder name, and saves the video, audio and a transcript. You can also drag a video file onto `run.bat`.
+
+## Watch and customize your replay
+
+Click **Open replay** when the job finishes, or open `index.html` from your output folder later. The page works offline. Keep `index.html` and the video in the same folder; if you copy or share it, copy the whole folder.
+
+- **Layout:** the video is on the left (68% of the width), the subtitles and transcript panel on the right (28%), with a 4% gap. These are percentages, so the proportions hold at any window size or screen resolution.
+- **CC** shows or hides the current subtitle (on by default).
+- **Fullscreen** takes the video and the subtitles fullscreen together, so the subtitles stay visible with CC on. Use this button rather than the video's own fullscreen button. Press **Esc** to exit.
+- **Speed** plays at 0.5x, 0.75x, 1x, 1.25x or 1.5x.
+- **Replay line** jumps back to the start of the current line and plays it again.
+- Click any **transcript line** to jump to that moment. The line being spoken is highlighted.
+- **Settings** changes how the subtitles look, immediately:
+  - **Font**: system default, serif, monospace, sans-serif or comic
   - **Text color** and **text size** (12 to 48 px)
   - **Background color** and **background brightness** (20% to 200%)
   - **Bold** and **italic**
-  - **Reset** returns to the defaults.
+  - **Reset** restores the defaults
 
-  Your choices are saved in your browser and applied the next time you open any replay page. They also apply in fullscreen.
+  Your choices are saved in your browser and applied every time you open a replay, including in fullscreen.
 
 ## Try it with free videos
 
-These are examples of places with free tech videos you can paste into the app. They are only suggestions, and each video has its own terms.
+These are examples of places with free tech videos you can paste into the app. They are only suggestions, and each video has its own terms. Pick a single video, not a whole channel or playlist.
 
 - [freeCodeCamp on YouTube](https://www.youtube.com/@freecodecamp) - long programming courses
 - [MIT OpenCourseWare](https://ocw.mit.edu/) - free university lectures, including computer science
