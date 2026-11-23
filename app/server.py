@@ -28,8 +28,7 @@ import quality  # noqa: E402
 import steps  # noqa: E402
 
 STATIC = HERE / "static"
-OUT_ROOT = Path(os.environ.get("AUDIOEXT_OUT") or extract.OUT_ROOT)  # tests point this at a temp folder
-extract.OUT_ROOT = OUT_ROOT  # extract.custom_folder reads this module attribute
+OUT_ROOT = Path(extract.OUT_ROOT)
 LABELS = {"video": "Save video", "audio": "Save audio", "transcript": "Save transcript",
           "replay": "Create captioned replay"}
 TOKEN = secrets.token_urlsafe(16)

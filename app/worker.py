@@ -23,7 +23,6 @@ import core  # noqa: E402
 import quality  # noqa: E402
 import replay  # noqa: E402
 import steps  # noqa: E402
-import subtitles  # noqa: E402
 
 
 
@@ -160,7 +159,6 @@ def main():
         duration = duration or info.duration
 
     files = []
-    notice = ""
     video_dest = None
     if "video" in keep:
         video_dest = stg / ("video" + media.suffix)
@@ -180,7 +178,7 @@ def main():
         # Every replay is a single file that plays on its own; the video is read from the saved copy
         # when there is one (it may have been moved there), otherwise from the temporary media.
         read_from = video_dest if video_dest else media
-        replay.write_replay(stg / "index.html", job["title"], read_from, segments, True)
+        replay.write_replay(stg / "index.html", job["title"], read_from, segments)
         files.append("index.html")
         stage("captions", 100, "Captions ready")
 
@@ -192,8 +190,7 @@ def main():
     final = Path(job["final_dir"])
     os.rename(stg, final)  # fails if the folder already exists, so nothing is ever overwritten or merged
     emit(type="done", folder=str(final), files=files,
-         replay_url=("/files/%s/index.html" % quote(final.name)) if "replay" in keep else "",
-         notice=notice)
+         replay_url=("/files/%s/index.html" % quote(final.name)) if "replay" in keep else "")
 
 
 if __name__ == "__main__":

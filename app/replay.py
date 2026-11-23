@@ -8,9 +8,8 @@ from replay_js import JS
 from replay_icon import ICON_PNG_B64
 
 
-def render_replay(title: str, video_file: str, segments: list[dict], embed_mime: str | None = None) -> str:
+def render_replay(title: str, segments: list[dict], embed_mime: str) -> str:
     escaped_title = html.escape(title)
-    escaped_video = html.escape(video_file, quote=True)
     segments_json = json.dumps(segments, ensure_ascii=False).replace("<", "\\u003c")
 
     parts = []
@@ -28,10 +27,7 @@ def render_replay(title: str, video_file: str, segments: list[dict], embed_mime:
     parts.append("<h1>" + escaped_title + "</h1>")
     parts.append("<div id=\"player\">")
     parts.append("<div id=\"stage\">")
-    if embed_mime is not None:
-        parts.append("<video id=\"video\" controls preload=\"metadata\"></video>")
-    else:
-        parts.append("<video id=\"video\" controls preload=\"metadata\" src=\"" + escaped_video + "\"></video>")
+    parts.append("<video id=\"video\" controls preload=\"metadata\"></video>")
     parts.append("</div>")
     parts.append("<div id=\"side\">")
     parts.append("<div id=\"controls\">")
@@ -73,9 +69,8 @@ def render_replay(title: str, video_file: str, segments: list[dict], embed_mime:
     parts.append("</div>")
     parts.append("</div>")
     parts.append("<script type=\"application/json\" id=\"segments\">" + segments_json + "</script>")
-    if embed_mime is not None:
-        escaped_mime = html.escape(embed_mime, quote=True)
-        parts.append("<script type=\"text/plain\" id=\"video-data\" data-mime=\"" + escaped_mime + "\">@@VIDEO_DATA@@</script>")
+    escaped_mime = html.escape(embed_mime, quote=True)
+    parts.append("<script type=\"text/plain\" id=\"video-data\" data-mime=\"" + escaped_mime + "\">@@VIDEO_DATA@@</script>")
     parts.append("<script>" + JS + "</script>")
     parts.append("</div>")
     parts.append("</body>")
@@ -83,15 +78,10 @@ def render_replay(title: str, video_file: str, segments: list[dict], embed_mime:
     return "".join(parts)
 
 
-def write_replay(dest: Path, title: str, video_path: Path, segments: list[dict], embed: bool, video_name: str = "") -> None:
-    if not embed:
-        dest.write_text(render_replay(title, video_name, segments), encoding="utf-8")
-        return
-
+def write_replay(dest: Path, title: str, video_path: Path, segments: list[dict]) -> None:
+    """Write one self-contained HTML file: the video is embedded (base64) so the page plays on its own."""
     mime = mimetypes.guess_type(video_path.name)[0] or "video/mp4"
-    html_content = render_replay(title, "", segments, embed_mime=mime)
-    before, after = html_content.split("@@VIDEO_DATA@@", 1)
-
+    before, after = render_replay(title, segments, mime).split("@@VIDEO_DATA@@", 1)
     chunk_size = 3 * 1024 * 1024  # multiple of 3 so base64 chunks concatenate correctly
     with dest.open("wb") as out:
         out.write(before.encode("utf-8"))

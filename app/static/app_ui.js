@@ -209,9 +209,6 @@ function handleEvent(msg) {
         li.textContent = f;
         list.appendChild(li);
       });
-      const notice = document.getElementById("done-notice");
-      notice.textContent = msg.notice || "";
-      notice.hidden = !msg.notice;
       const replay = document.getElementById("open-replay");
       if (msg.replay_url) {
         replay.href = msg.replay_url;

@@ -126,18 +126,6 @@ These are examples of places with free tech videos you can paste into the app. T
 - [freeCodeCamp on YouTube](https://www.youtube.com/@freecodecamp) - long programming courses
 - [MIT OpenCourseWare](https://ocw.mit.edu/) - free university lectures, including computer science
 
-## Run the tests
-
-```
-python -I -m unittest discover -s app/tests
-```
-
-The browser check for the replay page needs Node.js 22+ and Chrome:
-
-```
-node app/tests/replay_e2e.js <path-to-a-generated-index.html> <path-to-chrome.exe> <empty-profile-folder>
-```
-
 ## License
 
 MIT - see [LICENSE](LICENSE).

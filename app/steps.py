@@ -1,8 +1,6 @@
-import os
-
 CANONICAL = ["video", "audio", "transcript", "replay"]
-# Biggest video that can go inside the single-file replay (AE_EMBED_LIMIT lets tests shrink it).
-EMBED_LIMIT = int(os.environ.get("AE_EMBED_LIMIT") or 200 * 1024 * 1024)
+# Biggest video that can go inside the single-file replay.
+EMBED_LIMIT = 200 * 1024 * 1024
 
 
 def too_big_message(size_bytes: int) -> str:
