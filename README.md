@@ -43,7 +43,7 @@ This repository includes a setup skill: [`skills/setup-subtitled-video/SKILL.md`
 
    | Option | What you get |
    | --- | --- |
-   | **Save video** | The video: `video.mp4` for links, or a copy of your file with its own extension for files (written `video.*` below) |
+   | **Save video** | The video, saved as `video.*` (usually `video.mp4` for links; a copy of your file keeps its own extension) |
    | **Save audio** | `audio.wav` |
    | **Save transcript** | `transcript.md`: the title, source, detected language, length, and every line with its time |
    | **Create captioned replay** | `index.html` and `captions.srt` (standard subtitle file). The replay needs the video, so it is kept too |
