@@ -38,7 +38,7 @@ This repository includes a setup skill: [`skills/setup-subtitled-video/SKILL.md`
 
 1. Double-click `run_web.bat`. A browser tab opens with the app. Keep the black window open while you use it: closing it stops the app. (If the tab doesn't open, copy the address shown in the black window into your browser.)
 2. **Video source:** paste a video link (it must start with `http://` or `https://`, and it must be one single video, not a playlist or channel) or the full path to a video file on your PC, for example `C:\Videos\lesson.mp4`. Click **Check** (or press Enter).
-3. The app checks the video and shows its **title**, whether it is a **Link** or a **File**, and its **length**. Checking a link can take up to a minute.
+3. The app checks the video (see [What the app checks](#what-the-app-checks)) and, if it is usable, shows its **title**, whether it is a **Link** or a **File**, and its **length**. If it isn't, you get a plain explanation and can try another source. Checking a link can take up to a minute.
 4. **Choose what to save.** You can tick more than one. **Save video** is ticked by default, and **Start** stays disabled until at least one box is ticked.
 
    | Option | What you get |
@@ -55,16 +55,44 @@ This repository includes a setup skill: [`skills/setup-subtitled-video/SKILL.md`
 8. Click **Start**. The app shows the steps (Downloading, Extracting audio, Transcribing, Building captions), a progress bar, an estimated time left, and the transcript as it appears. Only one video can be processed at a time. **Cancel** stops the job and leaves no half-finished folder. If you reload the page while a job is running, it reconnects to it.
 9. When it finishes, you see the list of files saved. Click **Open replay** to watch the captioned video in your browser, **Open folder** to see the files in Explorer, or **New video** to start another one. If something stops the job, the app tells you why and offers **Retry**, which takes you back to the source box with your previous link or path still filled in.
 
-### Videos the app can't process
+### What the app checks
 
-The app checks first and tells you plainly when it can't continue:
+Everything is checked before any work starts, so you never wait on something that can't succeed.
 
-- a playlist or channel link (paste one video instead),
-- a live stream that hasn't ended,
-- a video protected by DRM,
-- a site that isn't supported, or a link that can't be reached,
-- a private video, or one that needs you to be logged in. For those, export your browser cookies to a file named `cookies.txt` (Netscape format) in the project folder (next to `run_web.bat`) and try again,
-- a path that is a folder, an image, or a file ffmpeg can't read.
+**When you click Check**
+
+- **Tools:** ffmpeg and ffprobe must be installed and on your PATH.
+- **Local file:** the path must be a file (not a folder) that ffmpeg can read, and it must contain video or audio. Images and other non-media files are rejected. The app notes whether the file has an audio track and whether it has a video track.
+- **Link:** it must start with `http://` or `https://`. Anything else that isn't an existing file is rejected. The site must answer within 60 seconds. The app also rejects:
+  - a link that can't be reached (check your connection and the link),
+  - a site or page the downloader doesn't support (paste the direct link to one video),
+  - a playlist or channel (paste one video instead),
+  - a live stream that hasn't ended,
+  - a video protected by DRM,
+  - a private or removed video, or one that needs you to be logged in. For those, export your browser cookies to a file named `cookies.txt` (Netscape format) in the project folder (next to `run_web.bat`) and check again.
+- **No audio track:** the app warns you, and disables Save audio, Save transcript and Create captioned replay, since there is nothing to transcribe. An audio-only file can't be saved as a video or a replay.
+
+**While you choose options**
+
+- You must tick at least one output before **Start** is enabled.
+- The app works out what each combination needs (for example, that the replay keeps the video) and tells you in the note under the boxes.
+
+**When you click Start**
+
+- Only one job can run at a time (a second tab or a second click is refused).
+- The model size and video quality must be valid values.
+- The **folder name** must be usable: characters Windows doesn't allow in folder names (such as `< > : " / \ | ? *`) are removed, a name that ends up empty is rejected, and a name that already exists is rejected so nothing is ever overwritten.
+
+**While it runs**
+
+- If audio extraction or transcription fails, the app stops and shows the reason, then offers **Retry**.
+- If your graphics card can't be used for transcription, the app switches to the processor automatically.
+- **Cancel** stops the job and removes the unfinished work. Results are saved in one final step, so you never get a half-filled folder. If the result had already been saved when you cancelled, the app keeps it and tells you.
+- If you close the black window, any running job is stopped.
+
+**Privacy and security of the app itself**
+
+- The app only listens on your own computer (127.0.0.1) and only accepts requests carrying a random access code created at each start, so other programs and websites can't drive it.
 
 ### Command-line version
 
