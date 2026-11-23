@@ -43,7 +43,7 @@ This repository includes a setup skill: [`skills/setup-subtitled-video/SKILL.md`
 
    | Option | What you get |
    | --- | --- |
-   | **Save video** | The video: `video.mp4` for links, or a copy of your file with its own extension for files |
+   | **Save video** | The video: `video.mp4` for links, or a copy of your file with its own extension for files (written `video.*` below) |
    | **Save audio** | `audio.wav` |
    | **Save transcript** | `transcript.md`: the title, source, detected language, length, and every line with its time |
    | **Create captioned replay** | `index.html` and `captions.srt` (standard subtitle file). The replay needs the video, so it is kept too |
@@ -53,7 +53,7 @@ This repository includes a setup skill: [`skills/setup-subtitled-video/SKILL.md`
 6. **Video quality (resolution):** for links, when you are saving the video or the replay, a menu lets you choose the resolution. The first choice is **Best available** (it shows the tallest resolution), followed by each available resolution, such as `1080p (~250 MB)` or `720p`, with an approximate download size when the site reports it. A lower resolution downloads faster and uses less disk space. If the site offers a single quality, the menu is disabled and says so. If you save only audio or a transcript from a link, only the audio is downloaded and no quality is needed.
 7. **Model size:** shown when you choose a transcript or a replay. **More accurate (medium)** is the default; **Faster (small)** finishes sooner with less accuracy. The first time you use each one, the model is downloaded.
 8. Click **Start**. The app shows the steps (Downloading, Extracting audio, Transcribing, Building captions), a progress bar, an estimated time left, and the transcript as it appears. Only one video can be processed at a time. **Cancel** stops the job and leaves no half-finished folder. If you reload the page while a job is running, it reconnects to it.
-9. When it finishes, you see the list of files saved. Click **Open replay** to watch the captioned video in your browser, **Open folder** to see the files in Explorer, or **New video** to start another one. If something stops the job, the app tells you why and offers **Retry**.
+9. When it finishes, you see the list of files saved. Click **Open replay** to watch the captioned video in your browser, **Open folder** to see the files in Explorer, or **New video** to start another one. If something stops the job, the app tells you why and offers **Retry**, which takes you back to the source box with your previous link or path still filled in.
 
 ### Videos the app can't process
 
@@ -68,14 +68,14 @@ The app checks first and tells you plainly when it can't continue:
 
 ### Command-line version
 
-`run.bat` does the same job in a text window: it asks for the link or file path and for a folder name, and saves the video, audio and a transcript. You can also drag a video file onto `run.bat`.
+`run.bat` is a simpler text-window version. It asks for a video link or file path and for a folder name (Enter for automatic), then saves the video, the audio and a transcript (when the video has audio). You can also drag a video file onto `run.bat`. The resolution menu and the captioned replay are only in the browser app (`run_web.bat`).
 
 ## Watch and customize your replay
 
-Click **Open replay** when the job finishes, or open `index.html` from your output folder later. The page works offline. Keep `index.html` and the video in the same folder; if you copy or share it, copy the whole folder.
+Click **Open replay** when the job finishes, or open `index.html` from your output folder later. The page works offline. Keep `index.html` and the `video.*` file in the same folder; if you copy or share it, copy the whole folder.
 
 - **Layout:** the video is on the left (68% of the width), the subtitles and transcript panel on the right (28%), with a 4% gap. These are percentages, so the proportions hold at any window size or screen resolution.
-- **CC** shows or hides the current subtitle (on by default).
+- **CC** shows or hides the current subtitle (on by default). The clickable transcript stays visible either way.
 - **Fullscreen** takes the video and the subtitles fullscreen together, so the subtitles stay visible with CC on. Use this button rather than the video's own fullscreen button. Press **Esc** to exit.
 - **Speed** plays at 0.5x, 0.75x, 1x, 1.25x or 1.5x.
 - **Replay line** jumps back to the start of the current line and plays it again.
@@ -87,7 +87,9 @@ Click **Open replay** when the job finishes, or open `index.html` from your outp
   - **Bold** and **italic**
   - **Reset** restores the defaults
 
-  Your choices are saved in your browser and applied every time you open a replay, including in fullscreen.
+  Font, color, size, bold and italic apply to both the current subtitle and the transcript lines. Background color and brightness apply to the current subtitle. Changes also apply in fullscreen.
+
+  Your choices are saved in your browser and used the next time you open a replay. If your browser blocks storage, the defaults are used. A replay opened from `output\...\index.html` on disk and one opened with **Open replay** may keep separate settings, because browsers store them per address.
 
 ## Try it with free videos
 
