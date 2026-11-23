@@ -40,12 +40,12 @@ This repository includes a setup skill: [`skills/setup-subtitled-video/SKILL.md`
 2. **Paste a video link** (for example a YouTube URL) **or a file path** into the box, then click **Check**. The app looks at the video and shows its title and length.
 3. **Choose what you want to save** with the checkboxes:
    - **Save video** - the video file (`video.mp4`).
-   - **Save audio** - the audio of the video.
+   - **Save audio** - the audio of the video (`audio.wav`).
    - **Save transcript** - a timestamped text transcript (`transcript.md`).
    - **Create captioned replay** - the replay page (`index.html`) plus subtitles (`captions.srt`). It keeps the video, since the page plays it.
 
    A note under the checkboxes tells you what will be kept. If the video has no audio, only the video option is available.
-4. **Folder name:** type the name of the folder where your files will go, or leave it empty for an automatic name. Folders are created inside the `output` folder next to `run_web.bat` (for example `output\My lecture`). If that name already exists, the app asks you to choose another, so nothing is overwritten.
+4. **Folder name:** type the name of the folder where your files will go, or leave it blank and the app names the folder from the video title (plus the video ID when there is one, and a number if that name is already taken). Folders are created inside the `output` folder next to `run_web.bat` (for example `output\My lecture`). If that name already exists, the app asks you to choose another, so nothing is overwritten.
 5. Optional: if you chose a transcript or a replay, pick the **model size**: *Faster (small)* or *More accurate (medium)*. For links, you can also pick the **video quality**.
 6. Click **Start**. The app shows each stage, a progress bar, an estimated time and the transcript as it is written. **Cancel** stops it.
 7. When it finishes, click **Open replay** to watch it in your browser, **Open folder** to see the files, or **New video** to start again.
@@ -54,7 +54,7 @@ The first run is slower: it downloads the speech model (and installs the Python 
 
 ## The replay page
 
-Open `index.html` from the folder you created (or use **Open replay**). It works offline and can be copied or shared together with the folder's `video.mp4`.
+Open `index.html` from the folder you created (or use **Open replay**). It works offline. To watch it later, open `index.html` from the output folder and keep `video.mp4` in that same folder; if you copy or share it, copy the whole folder.
 
 - **Layout:** the video is on the left (68% of the width), the subtitles and the transcript on the right (28%), with a 4% gap. The proportions are percentages, so they hold at any window size or resolution.
 - **Controls:**
