@@ -28,7 +28,7 @@ class Replay(unittest.TestCase):
 
     def test_required_controls_exist(self):
         html = replay.render_replay("Demo", "video.mp4", SEGS)
-        for ident in ("player", "stage", "side", "current-caption", "cc-toggle", "transcript", "speed", "replay-line"):
+        for ident in ("player", "stage", "side", "cc-toggle", "transcript", "speed", "replay-line"):
             self.assertIn('id="%s"' % ident, html)
 
     def test_segments_round_trip(self):
@@ -70,15 +70,19 @@ class Replay(unittest.TestCase):
         self.assertIn("column-gap: 4%", css)
         self.assertNotIn("max-width: 960px", css)
 
-    def test_native_fullscreen_disabled(self):
+    def test_native_fullscreen_button_is_left_alone(self):
         html = replay.render_replay("Demo", "video.mp4", SEGS)
-        self.assertIn('controlsList="nofullscreen"', html)
+        self.assertNotIn("nofullscreen", html)
+        self.assertNotIn("fs-toggle", html)
+        self.assertNotIn("requestFullscreen", html)
 
-    def test_custom_fullscreen_targets_player(self):
+    def test_subtitles_are_a_native_track_on_the_video(self):
         html = replay.render_replay("Demo", "video.mp4", SEGS)
-        self.assertIn('id="fs-toggle"', html)
-        self.assertIn("requestFullscreen", html)
-        self.assertIn('getElementById("player")', html)
+        self.assertIn("addTextTrack", html)
+        self.assertIn("VTTCue", html)
+        self.assertIn("video::cue", replay_css.CSS)
+        self.assertNotIn("current-caption", html)
+        self.assertNotIn("<track", html)
 
     def test_settings_controls_exist(self):
         html = replay.render_replay("Demo", "video.mp4", SEGS)
@@ -93,7 +97,7 @@ class Replay(unittest.TestCase):
 
     def test_css_uses_variables(self):
         css = replay_css.CSS
-        for var in ("--sub-font", "--sub-color", "--sub-size", "--sub-bg", "--sub-brightness", "--sub-weight", "--sub-style"):
+        for var in ("--sub-font", "--sub-color", "--sub-size", "--sub-cue-bg", "--sub-weight", "--sub-style"):
             self.assertIn(var, css)
 
 

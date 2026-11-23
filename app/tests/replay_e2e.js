@@ -50,39 +50,31 @@ function check(name, cond, extra) {
     }
     await send("Emulation.clearDeviceMetricsOverride");
 
-    // long subtitle line stays inside the right column
+    // the subtitle is a native text track, so it is drawn on the video (also in the player's own fullscreen)
     await ev("document.getElementById('video').currentTime = 1; 1");
     await sleep(600);
-    const fit = await ev("(()=>{const c=document.getElementById('current-caption').getBoundingClientRect(),d=document.getElementById('side').getBoundingClientRect();return c.right<=d.right+1&&c.left>=d.left-1})()");
-    check("long caption stays inside subtitle column", fit);
+    check("subtitle is an active cue on the video", await ev("(()=>{const t=document.getElementById('video').textTracks[0];return t.mode==='showing'&&t.activeCues.length===1})()"));
+    check("no separate caption box outside the video", await ev("!document.getElementById('current-caption')"));
 
     // settings persist after reload, from file://
     await ev("document.getElementById('settings-toggle').click(); 1");
     await ev("(()=>{const b=document.getElementById('set-bold');b.checked=true;b.dispatchEvent(new Event('change'));const s=document.getElementById('set-size');s.value='30';s.dispatchEvent(new Event('input'));return 1})()");
     await load();
-    const after = await ev("(()=>{const e=document.getElementById('side').style;return {w:e.getPropertyValue('--sub-weight'),sz:e.getPropertyValue('--sub-size')}})()");
+    const after = await ev("(()=>{const e=document.documentElement.style;return {w:e.getPropertyValue('--sub-weight'),sz:e.getPropertyValue('--sub-size')}})()");
     check("bold + size survive reload", after.w === "700" && after.sz === "30px", after);
 
     // corrupt storage falls back to defaults without crashing
     await ev("localStorage.setItem('subtitled-video.settings','{not json'); 1");
     await load();
-    const def = await ev("document.getElementById('side').style.getPropertyValue('--sub-size')");
+    const def = await ev("document.documentElement.style.getPropertyValue('--sub-size')");
     check("corrupt settings fall back to defaults", def === "20px", def);
 
-    // Fullscreen: Chrome refuses real fullscreen to automated sessions ("not granted"), so we check that a real
-    // click asks the whole #player (video + subtitle panel) to go fullscreen, not just the <video>.
-    await ev("window.__fs=[];for(const id of ['player','video']){const el=document.getElementById(id);el.requestFullscreen=function(){window.__fs.push(id);return Promise.resolve()}};1");
-    await click("#fs-toggle");
-    await sleep(300);
-    check("fullscreen button targets #player, not the video", JSON.stringify(await ev("window.__fs")) === '["player"]', await ev("window.__fs"));
-    check("native video fullscreen button is disabled", await ev("document.getElementById('video').controlsList.contains('nofullscreen')"));
-    check("CC off/on works", await (async () => {
-      await ev("document.getElementById('video').currentTime = 1; 1"); await sleep(600);
-      await ev("document.getElementById('cc-toggle').click(); 1");
-      const off = await ev("document.getElementById('current-caption').textContent===''");
-      await ev("document.getElementById('cc-toggle').click(); 1");
-      return off && await ev("document.getElementById('current-caption').textContent.length>0");
-    })());
+    // the player's own fullscreen button must stay available (cues render inside native fullscreen)
+    check("no custom fullscreen button, native one not disabled", await ev("!document.getElementById('fs-toggle') && !document.getElementById('video').controlsList.contains('nofullscreen')"));
+    await ev("document.getElementById('cc-toggle').click(); 1");
+    check("CC off hides the track", await ev("document.getElementById('video').textTracks[0].mode==='hidden'"));
+    await ev("document.getElementById('cc-toggle').click(); 1");
+    check("CC on shows the track again", await ev("document.getElementById('video').textTracks[0].mode==='showing'"));
   } catch (e) {
     console.log("FAIL  script error: " + e.message); fails++;
   }

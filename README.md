@@ -103,8 +103,8 @@ Everything is checked before any work starts, so you never wait on something tha
 Click **Open replay** when the job finishes, or open `index.html` from your output folder later. The page works offline. Keep `index.html` and the `video.*` file in the same folder; if you copy or share it, copy the whole folder.
 
 - **Layout:** the video is on the left (68% of the width), the subtitles and transcript panel on the right (28%), with a 4% gap. These are percentages, so the proportions hold at any window size or screen resolution.
-- **CC** shows or hides the current subtitle (on by default). The clickable transcript stays visible either way.
-- **Fullscreen** takes the video and the subtitles fullscreen together, so the subtitles stay visible with CC on. Use this button rather than the video's own fullscreen button. Press **Esc** to exit.
+- **Subtitles** appear on the video itself, at the bottom, like in any video player. **CC** shows or hides them (on by default). The clickable transcript stays visible either way.
+- **Fullscreen:** use the video player's own fullscreen button. The subtitles stay on the video in fullscreen.
 - **Speed** plays at 0.5x, 0.75x, 1x, 1.25x or 1.5x.
 - **Replay line** jumps back to the start of the current line and plays it again.
 - Click any **transcript line** to jump to that moment. The line being spoken is highlighted.
@@ -115,7 +115,7 @@ Click **Open replay** when the job finishes, or open `index.html` from your outp
   - **Bold** and **italic**
   - **Reset** restores the defaults
 
-  Font, color, size, bold and italic apply to both the current subtitle and the transcript lines. Background color and brightness apply to the current subtitle. Changes also apply in fullscreen.
+  Font, color, size, bold and italic apply to the subtitles on the video and to the transcript lines. Background color and brightness apply to the subtitles on the video. Changes also apply in fullscreen.
 
   Your choices are saved in your browser and used the next time you open a replay. If your browser blocks storage, the defaults are used. A replay opened from `output\...\index.html` on disk and one opened with **Open replay** may keep separate settings, because browsers store them per address.
 

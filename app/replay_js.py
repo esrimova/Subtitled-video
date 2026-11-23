@@ -3,12 +3,10 @@ JS = r"""
     const segmentsEl = document.getElementById("segments");
     const segments = JSON.parse(segmentsEl.textContent);
     const video = document.getElementById("video");
-    const currentCaption = document.getElementById("current-caption");
     const transcript = document.getElementById("transcript");
     const ccToggle = document.getElementById("cc-toggle");
     const speedSelect = document.getElementById("speed");
     const replayLineBtn = document.getElementById("replay-line");
-    const fsToggle = document.getElementById("fs-toggle");
     const settingsToggle = document.getElementById("settings-toggle");
     const settingsPanel = document.getElementById("settings-panel");
     const setFont = document.getElementById("set-font");
@@ -30,8 +28,13 @@ JS = r"""
         return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
     }
 
+    const track = video.addTextTrack("captions", "English", "en");
+    track.mode = "showing";
     for (let i = 0; i < segments.length; i++) {
         const seg = segments[i];
+        if (seg.end > seg.start) {
+            track.addCue(new VTTCue(seg.start, seg.end, seg.text));
+        }
         const line = document.createElement("div");
         line.className = "line";
         line.dataset.i = String(i);
@@ -72,13 +75,6 @@ JS = r"""
             }
             activeIndex = newIndex;
         }
-        if (captionsOn) {
-            if (newIndex >= 0) {
-                currentCaption.textContent = segments[newIndex].text;
-            } else {
-                currentCaption.textContent = "";
-            }
-        }
     }
 
     video.addEventListener("timeupdate", function () {
@@ -88,11 +84,7 @@ JS = r"""
     ccToggle.addEventListener("click", function () {
         captionsOn = !captionsOn;
         ccToggle.setAttribute("aria-pressed", captionsOn ? "true" : "false");
-        if (!captionsOn) {
-            currentCaption.textContent = "";
-        } else if (activeIndex >= 0) {
-            currentCaption.textContent = segments[activeIndex].text;
-        }
+        track.mode = captionsOn ? "showing" : "hidden";
     });
 
     speedSelect.addEventListener("change", function () {
@@ -112,14 +104,6 @@ JS = r"""
         if (targetIndex >= 0) {
             video.currentTime = segments[targetIndex].start;
             video.play().catch(function () {});
-        }
-    });
-
-    fsToggle.addEventListener("click", function () {
-        if (document.fullscreenElement) {
-            document.exitFullscreen().catch(function () {});
-        } else {
-            document.getElementById("player").requestFullscreen().catch(function () {});
         }
     });
 
@@ -165,14 +149,22 @@ JS = r"""
     }
 
     function applySettings(s) {
-        const side = document.getElementById("side");
-        side.style.setProperty("--sub-font", s.font);
-        side.style.setProperty("--sub-color", s.color);
-        side.style.setProperty("--sub-size", s.size + "px");
-        side.style.setProperty("--sub-bg", s.bg);
-        side.style.setProperty("--sub-brightness", String(s.brightness / 100));
-        side.style.setProperty("--sub-weight", s.bold ? "700" : "400");
-        side.style.setProperty("--sub-style", s.italic ? "italic" : "normal");
+        const root = document.documentElement;
+        root.style.setProperty("--sub-font", s.font);
+        root.style.setProperty("--sub-color", s.color);
+        root.style.setProperty("--sub-size", s.size + "px");
+        root.style.setProperty("--sub-weight", s.bold ? "700" : "400");
+        root.style.setProperty("--sub-style", s.italic ? "italic" : "normal");
+        root.style.setProperty("--sub-bg", s.bg);
+        const hex = s.bg.replace("#", "");
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        const factor = s.brightness / 100;
+        const rr = Math.round(Math.min(255, Math.max(0, r * factor)));
+        const gg = Math.round(Math.min(255, Math.max(0, g * factor)));
+        const bb = Math.round(Math.min(255, Math.max(0, b * factor)));
+        root.style.setProperty("--sub-cue-bg", "rgba(" + rr + ", " + gg + ", " + bb + ", 0.9)");
     }
 
     let settings = loadSettings();

@@ -25,25 +25,7 @@ h1 {
     column-gap: 4%;
     align-items: start;
 }
-#player:fullscreen {
-    width: 100vw;
-    height: 100vh;
-    background: #000;
-    padding: 2%;
-    box-sizing: border-box;
-    align-items: stretch;
-}
-#player:fullscreen #stage video {
-    height: 100%;
-    object-fit: contain;
-}
-#player:fullscreen #transcript {
-    max-height: none;
-}
-#player:fullscreen #side {
-    height: 100%;
-    overflow: hidden;
-}
+
 #stage {
     width: 100%;
 }
@@ -52,35 +34,18 @@ h1 {
     display: block;
     background: #000;
 }
-#side {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-#current-caption {
-    position: relative;
-    isolation: isolate;
-    min-height: 3.5em;
-    padding: 12px 16px;
-    background: transparent;
+video::cue {
     color: var(--sub-color, #ffffff);
+    background-color: var(--sub-cue-bg, rgba(16, 20, 24, 0.9));
     font-family: var(--sub-font, system-ui);
     font-size: var(--sub-size, 20px);
     font-weight: var(--sub-weight, 400);
     font-style: var(--sub-style, normal);
-    text-align: center;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    overflow-wrap: anywhere;
 }
-#current-caption::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: var(--sub-bg, #101418);
-    filter: brightness(var(--sub-brightness, 1));
-    border-radius: 8px;
-    z-index: -1;
+#side {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
 }
 #controls {
     display: flex;
