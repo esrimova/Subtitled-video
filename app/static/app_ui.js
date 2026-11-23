@@ -95,7 +95,7 @@ function updateModelRow(pipeline, keep) {
   const qualityRow = document.getElementById("quality-row");
   const qualitySelect = document.getElementById("quality");
   const qualityNote = document.getElementById("quality-note");
-  const hasVideo = keep.includes("video");
+  const hasVideo = keep.includes("video") || keep.includes("replay");
   const hasQualities = currentQualities.length > 0;
   qualityRow.hidden = !(hasVideo && hasQualities);
   if (hasVideo && hasQualities) {
@@ -209,6 +209,9 @@ function handleEvent(msg) {
         li.textContent = f;
         list.appendChild(li);
       });
+      const notice = document.getElementById("done-notice");
+      notice.textContent = msg.notice || "";
+      notice.hidden = !msg.notice;
       const replay = document.getElementById("open-replay");
       if (msg.replay_url) {
         replay.href = msg.replay_url;

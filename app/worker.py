@@ -5,6 +5,7 @@ The server kills this whole process tree on Cancel, so nothing here needs signal
 """
 import ctypes
 import json
+import mimetypes
 import os
 import shutil
 import subprocess
@@ -23,6 +24,8 @@ import quality  # noqa: E402
 import replay  # noqa: E402
 import steps  # noqa: E402
 import subtitles  # noqa: E402
+
+EMBED_LIMIT = 200 * 1024 * 1024
 
 
 def emit(**ev):
@@ -155,13 +158,15 @@ def main():
         duration = duration or info.duration
 
     files = []
+    notice = ""
+    video_dest = None
     if "video" in keep:
-        dest = stg / ("video" + media.suffix)
+        video_dest = stg / ("video" + media.suffix)
         if job["kind"] == "file":
-            shutil.copy2(media, dest)
+            shutil.copy2(media, video_dest)
         else:
-            media.replace(dest)
-        files.append(dest.name)
+            media.replace(video_dest)
+        files.append(video_dest.name)
     if "audio" in keep:
         files.append(wav.name)
     if "transcript" in keep:
@@ -170,10 +175,24 @@ def main():
         files.append("transcript.md")
     if "replay" in keep:
         stage("captions", 0, "Building captions…")
-        (stg / "captions.srt").write_text(subtitles.to_srt(segments), encoding="utf-8")
-        video_name = next(f for f in files if f.startswith("video"))
-        (stg / "index.html").write_text(replay.render_replay(job["title"], video_name, segments), encoding="utf-8")
-        files += ["index.html", "captions.srt"]
+        embed = (video_dest if video_dest else media).stat().st_size <= EMBED_LIMIT
+        video_name = ""
+        if "video" in keep:
+            video_name = video_dest.name
+        elif not embed:
+            # Too large to embed, save video next to index.html
+            video_dest = stg / ("video" + media.suffix)
+            if job["kind"] == "file":
+                shutil.copy2(media, video_dest)
+            else:
+                media.replace(video_dest)
+            files.append(video_dest.name)
+            video_name = video_dest.name
+            notice = "The video was too large to embed in the page (over 200 MB), so it was kept next to index.html. Keep both files together."
+        # When embed=True and "video" not in keep, video_name stays "" and we read from media
+        read_from = video_dest if video_dest else media
+        replay.write_replay(stg / "index.html", job["title"], read_from, segments, embed, video_name)
+        files.append("index.html")
         stage("captions", 100, "Captions ready")
 
     # Publish with ONE rename so the result is either completely there or not there at all
@@ -184,7 +203,8 @@ def main():
     final = Path(job["final_dir"])
     os.rename(stg, final)  # fails if the folder already exists, so nothing is ever overwritten or merged
     emit(type="done", folder=str(final), files=files,
-         replay_url=("/files/%s/index.html" % quote(final.name)) if "replay" in keep else "")
+         replay_url=("/files/%s/index.html" % quote(final.name)) if "replay" in keep else "",
+         notice=notice)
 
 
 if __name__ == "__main__":

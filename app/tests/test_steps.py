@@ -45,13 +45,23 @@ class Resolve(unittest.TestCase):
         self.assertEqual(r["keep"], ["audio", "transcript"])
         self.assertEqual(r["temporary"], [])
 
-    def test_replay_forces_video_and_mentions_it(self):
+    def test_replay_only_keeps_just_the_html(self):
         r = R({"replay"}, False, "url")
-        self.assertEqual(r["keep"], ["video", "replay"])
-        self.assertEqual(r["temporary"], ["audio"])
+        self.assertEqual(r["keep"], ["replay"])
+        self.assertEqual(r["temporary"], ["audio", "video"])
         self.assertEqual(r["pipeline"], ["download", "audio", "transcribe", "captions"])
         self.assertFalse(r["audio_only_download"])
-        self.assertTrue(any("video.mp4" in n for n in r["notes"]))
+        self.assertTrue(r["video_needed"])
+        self.assertTrue(any("single HTML" in n for n in r["notes"]))
+
+    def test_replay_plus_video_keeps_both(self):
+        r = R({"replay", "video"}, False, "file")
+        self.assertEqual(r["keep"], ["video", "replay"])
+        self.assertEqual(r["temporary"], ["audio"])
+
+    def test_video_needed_only_for_video_or_replay(self):
+        self.assertFalse(R({"transcript"}, False, "url")["video_needed"])
+        self.assertTrue(R({"video"}, False, "url")["video_needed"])
 
     def test_everything_in_canonical_order(self):
         r = R({"replay", "transcript", "audio", "video"}, False, "url")

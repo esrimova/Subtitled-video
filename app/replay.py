@@ -1,10 +1,13 @@
+import base64
 import html
 import json
+import mimetypes
+from pathlib import Path
 from replay_css import CSS
 from replay_js import JS
 
 
-def render_replay(title: str, video_file: str, segments: list[dict]) -> str:
+def render_replay(title: str, video_file: str, segments: list[dict], embed_mime: str | None = None) -> str:
     escaped_title = html.escape(title)
     escaped_video = html.escape(video_file, quote=True)
     segments_json = json.dumps(segments, ensure_ascii=False).replace("<", "\\u003c")
@@ -23,7 +26,10 @@ def render_replay(title: str, video_file: str, segments: list[dict]) -> str:
     parts.append("<h1>" + escaped_title + "</h1>")
     parts.append("<div id=\"player\">")
     parts.append("<div id=\"stage\">")
-    parts.append("<video id=\"video\" controls preload=\"metadata\" src=\"" + escaped_video + "\"></video>")
+    if embed_mime is not None:
+        parts.append("<video id=\"video\" controls preload=\"metadata\"></video>")
+    else:
+        parts.append("<video id=\"video\" controls preload=\"metadata\" src=\"" + escaped_video + "\"></video>")
     parts.append("</div>")
     parts.append("<div id=\"side\">")
     parts.append("<div id=\"controls\">")
@@ -65,8 +71,32 @@ def render_replay(title: str, video_file: str, segments: list[dict]) -> str:
     parts.append("</div>")
     parts.append("</div>")
     parts.append("<script type=\"application/json\" id=\"segments\">" + segments_json + "</script>")
+    if embed_mime is not None:
+        escaped_mime = html.escape(embed_mime, quote=True)
+        parts.append("<script type=\"text/plain\" id=\"video-data\" data-mime=\"" + escaped_mime + "\">@@VIDEO_DATA@@</script>")
     parts.append("<script>" + JS + "</script>")
     parts.append("</div>")
     parts.append("</body>")
     parts.append("</html>")
     return "".join(parts)
+
+
+def write_replay(dest: Path, title: str, video_path: Path, segments: list[dict], embed: bool, video_name: str = "") -> None:
+    if not embed:
+        dest.write_text(render_replay(title, video_name, segments), encoding="utf-8")
+        return
+
+    mime = mimetypes.guess_type(video_path.name)[0] or "video/mp4"
+    html_content = render_replay(title, "", segments, embed_mime=mime)
+    before, after = html_content.split("@@VIDEO_DATA@@", 1)
+
+    chunk_size = 3 * 1024 * 1024  # multiple of 3 so base64 chunks concatenate correctly
+    with dest.open("wb") as out:
+        out.write(before.encode("utf-8"))
+        with video_path.open("rb") as vf:
+            while True:
+                chunk = vf.read(chunk_size)
+                if not chunk:
+                    break
+                out.write(base64.b64encode(chunk))
+        out.write(after.encode("utf-8"))

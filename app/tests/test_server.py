@@ -120,7 +120,7 @@ class CheckAndPlan(ServerCase):
 
     def test_plan_endpoint_matches_steps(self):
         code, r = self.call("/api/plan", {"outputs": ["replay"], "no_audio": False, "kind": "url"})
-        self.assertEqual(r["keep"], ["video", "replay"])
+        self.assertEqual(r["keep"], ["replay"])
         code, r = self.call("/api/plan", {"outputs": ["audio"], "no_audio": True, "kind": "url"})
         self.assertFalse(r["ok"])
 
@@ -144,17 +144,20 @@ class Jobs(ServerCase):
         self.assertIn("download" if False else "audio", stages)
         self.assertIn("transcribe", stages)
         folder = self.out / "mi prueba"
-        self.assertEqual(sorted(p.name for p in folder.iterdir()),
-                         sorted(["video.mp4", "transcript.md", "index.html", "captions.srt"]))
+        # the output matches the selection: transcript + replay = transcript.md + ONE html (video inside it)
+        self.assertEqual(sorted(p.name for p in folder.iterdir()), sorted(["transcript.md", "index.html"]))
         self.assertEqual([p.name for p in self.out.iterdir() if p.name.startswith(".staging")], [])
-        # replay and srt come from the same segments
-        srt = (folder / "captions.srt").read_text(encoding="utf-8")
         html = (folder / "index.html").read_text(encoding="utf-8")
+        self.assertIn('id="video-data"', html)
+        self.assertNotIn("captions.srt", html)
         seg_json = re.search(r'id="segments">(.*?)</script>', html, re.S).group(1)
-        segs = json.loads(seg_json)
-        self.assertEqual(len(segs), srt.count(" --> "))
+        self.assertGreater(len(json.loads(seg_json)), 0)
+        # the embedded video is exactly the source clip
+        import base64
+        payload = re.search(r'id="video-data" data-mime="[^"]*">([A-Za-z0-9+/=]*)</script>', html).group(1)
+        self.assertEqual(base64.b64decode(payload), Path(CLIP).read_bytes())
         # served with Range support
-        req = urllib.request.Request(self.base + "/files/mi%20prueba/video.mp4",
+        req = urllib.request.Request(self.base + "/files/mi%20prueba/index.html",
                                      headers={"X-Token": self.token, "Range": "bytes=0-99"})
         with urllib.request.urlopen(req) as resp:
             self.assertEqual(resp.status, 206)
@@ -231,6 +234,17 @@ class Jobs(ServerCase):
         code, r = self.call("/api/start", {"source": CLIP, "outputs": ["video"], "folder_name": "despues"})
         self.assertTrue(r["ok"], r)
         self.assertEqual(self.events()[-1]["type"], "done")
+
+    def test_replay_plus_video_keeps_both_files(self):
+        self.call("/api/check", {"source": CLIP})
+        code, r = self.call("/api/start", {"source": CLIP, "outputs": ["video", "replay"],
+                                           "folder_name": "con video", "model": "small", "quality": "best"})
+        self.assertTrue(r["ok"], r)
+        evs = self.events()
+        self.assertEqual(evs[-1]["type"], "done", evs[-3:])
+        folder = self.out / "con video"
+        self.assertEqual(sorted(p.name for p in folder.iterdir()), sorted(["video.mp4", "index.html"]))
+        self.assertIn('id="video-data"', (folder / "index.html").read_text(encoding="utf-8"))
 
 
 class CancelAfterPublish(unittest.TestCase):

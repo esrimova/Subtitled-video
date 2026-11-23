@@ -7,7 +7,7 @@ Give it a video link or a video file on your computer. It downloads the video (f
 - the **video**,
 - the **audio** (`audio.wav`),
 - a timestamped **transcript** (`transcript.md`),
-- a **captioned replay** (`index.html` + `captions.srt`): a web page with the video on the left, and the subtitles and a clickable transcript on the right. You can change how the subtitles look.
+- a **captioned replay** (`index.html`): one web page with the video inside it, the subtitles on the video, and a clickable transcript on the right. You can change how the subtitles look.
 
 The speech is transcribed on your PC, not sent to an online service. The language is detected automatically. A graphics card (NVIDIA/CUDA) is used when available, otherwise the processor.
 
@@ -46,11 +46,11 @@ This repository includes a setup skill: [`skills/setup-subtitled-video/SKILL.md`
    | **Save video** | The video, saved as `video.*` (usually `video.mp4` for links; a copy of your file keeps its own extension) |
    | **Save audio** | `audio.wav` |
    | **Save transcript** | `transcript.md`: the title, source, detected language, length, and every line with its time |
-   | **Create captioned replay** | `index.html` and `captions.srt` (standard subtitle file). The replay needs the video, so it is kept too |
+   | **Create captioned replay** | `index.html`: a single self-contained page with the video, the subtitles and the transcript inside it. No separate video file is kept unless you also tick **Save video** |
 
-   A note under the boxes says what will be kept. If you pick only a transcript or the replay, the audio is used temporarily and then deleted. Options that don't apply are greyed out with a reason: a video with no audio track can only be saved as a video, and an audio-only file can't be saved as a video or a replay.
+   What you tick is what you get: the output folder contains exactly the files you chose. A note under the boxes says what will be kept. Anything the app needs only while working (the audio for a transcript, the video for a replay-only run) is used temporarily and then deleted. **Very large videos:** a replay page can hold videos up to 200 MB. If your video is bigger, the app keeps the video file next to `index.html` instead (and tells you when it finishes), because a page that big would not open reliably. Options that don't apply are greyed out with a reason: a video with no audio track can only be saved as a video, and an audio-only file can't be saved as a video or a replay.
 5. **Folder name:** type a name, for example `My lesson`, or leave it blank and the app names the folder from the video title (plus the video ID for links, and a number if that name is taken). Folders are created inside the `output` folder next to `run_web.bat`, for example `output\My lesson`. If a folder with the name you typed already exists, the app asks you to choose another one: it never overwrites anything.
-6. **Video quality (resolution):** for links, when you are saving the video or the replay, a menu lets you choose the resolution. The first choice is **Best available** (it shows the tallest resolution), followed by each available resolution, such as `1080p (~250 MB)` or `720p`, with an approximate download size when the site reports it. A lower resolution downloads faster and uses less disk space. If the site offers a single quality, the menu is disabled and says so. If you save only audio or a transcript from a link, only the audio is downloaded and no quality is needed.
+6. **Video quality (resolution):** for links, when you are saving the video or creating the replay, a menu lets you choose the resolution. The first choice is **Best available** (it shows the tallest resolution), followed by each available resolution, such as `1080p (~250 MB)` or `720p`, with an approximate download size when the site reports it. A lower resolution downloads faster and uses less disk space. If the site offers a single quality, the menu is disabled and says so. If you save only audio or a transcript from a link, only the audio is downloaded and no quality is needed.
 7. **Model size:** shown when you choose a transcript or a replay. **More accurate (medium)** is the default; **Faster (small)** finishes sooner with less accuracy. The first time you use each one, the model is downloaded.
 8. Click **Start**. The app shows the steps (Downloading, Extracting audio, Transcribing, Building captions), a progress bar, an estimated time left, and the transcript as it appears. Only one video can be processed at a time. **Cancel** stops the job and leaves no half-finished folder. If you reload the page while a job is running, it reconnects to it.
 9. When it finishes, you see the list of files saved. Click **Open replay** to watch the captioned video in your browser, **Open folder** to see the files in Explorer, or **New video** to start another one. If something stops the job, the app tells you why and offers **Retry**, which takes you back to the source box with your previous link or path still filled in.
@@ -100,7 +100,7 @@ Everything is checked before any work starts, so you never wait on something tha
 
 ## Watch and customize your replay
 
-Click **Open replay** when the job finishes, or open `index.html` from your output folder later. The page works offline. Keep `index.html` and the `video.*` file in the same folder; if you copy or share it, copy the whole folder.
+Click **Open replay** when the job finishes, or open `index.html` from your output folder later. The page works offline and is a single file, so you can copy or send just `index.html`. (If the app told you the video was too large to embed, keep `index.html` and the `video.*` file together in the same folder.)
 
 - **Layout:** the video is on the left (68% of the width), the subtitles and transcript panel on the right (28%), with a 4% gap. These are percentages, so the proportions hold at any window size or screen resolution.
 - **Subtitles** appear on the video itself, at the bottom, like in any video player. **CC** shows or hides them (on by default). The clickable transcript stays visible either way.

@@ -1,8 +1,31 @@
 JS = r"""
 (function () {
+    const video = document.getElementById("video");
+    const videoDataEl = document.getElementById("video-data");
+    if (videoDataEl) {
+        try {
+            const b64 = videoDataEl.textContent;
+            const mime = videoDataEl.dataset.mime;
+            const sliceSize = 4 * 1024 * 1024; // multiple of 4
+            const parts = [];
+            for (let i = 0; i < b64.length; i += sliceSize) {
+                const slice = b64.slice(i, i + sliceSize);
+                const binary = atob(slice);
+                const bytes = new Uint8Array(binary.length);
+                for (let j = 0; j < binary.length; j++) {
+                    bytes[j] = binary.charCodeAt(j);
+                }
+                parts.push(bytes);
+            }
+            const blob = new Blob(parts, { type: mime });
+            video.src = URL.createObjectURL(blob);
+            videoDataEl.textContent = "";
+        } catch (e) {
+        }
+    }
+
     const segmentsEl = document.getElementById("segments");
     const segments = JSON.parse(segmentsEl.textContent);
-    const video = document.getElementById("video");
     const transcript = document.getElementById("transcript");
     const ccToggle = document.getElementById("cc-toggle");
     const speedSelect = document.getElementById("speed");

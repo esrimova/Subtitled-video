@@ -95,6 +95,34 @@ class Replay(unittest.TestCase):
         self.assertIn("localStorage", html)
         self.assertIn("try", html)
 
+    def test_embedded_video_has_no_src_and_a_data_block(self):
+        html = replay.render_replay("Demo", "", SEGS, embed_mime="video/mp4")
+        self.assertIn('id="video-data"', html)
+        self.assertIn('data-mime="video/mp4"', html)
+        self.assertNotIn(' src=', html.split('id="video"')[1].split("</video>")[0])
+        self.assertEqual(html.count("<div"), html.count("</div>"))
+
+    def test_write_replay_embeds_the_exact_video_bytes(self):
+        import base64, tempfile
+        from pathlib import Path
+        tmp = Path(tempfile.mkdtemp(prefix="ae_rep_"))
+        data = bytes(range(256)) * 50000  # ~12 MB, not a multiple of the chunk size
+        (tmp / "v.mp4").write_bytes(data)
+        replay.write_replay(tmp / "index.html", "Demo", tmp / "v.mp4", SEGS, True)
+        html = (tmp / "index.html").read_text(encoding="utf-8")
+        payload = re.search(r'id="video-data" data-mime="[^"]*">([A-Za-z0-9+/=]*)</script>', html).group(1)
+        self.assertEqual(base64.b64decode(payload), data)
+        self.assertEqual(segments_in(html), SEGS)
+
+    def test_write_replay_without_embed_points_at_the_file(self):
+        import tempfile
+        from pathlib import Path
+        tmp = Path(tempfile.mkdtemp(prefix="ae_rep_"))
+        replay.write_replay(tmp / "index.html", "Demo", tmp / "v.mp4", SEGS, False, "video.mp4")
+        html = (tmp / "index.html").read_text(encoding="utf-8")
+        self.assertIn('src="video.mp4"', html)
+        self.assertNotIn('id="video-data"', html)
+
     def test_css_uses_variables(self):
         css = replay_css.CSS
         for var in ("--sub-font", "--sub-color", "--sub-size", "--sub-cue-bg", "--sub-weight", "--sub-style"):
