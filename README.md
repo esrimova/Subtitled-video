@@ -80,8 +80,8 @@ Everything is checked before any work starts, so you never wait on something tha
 **When you click Start**
 
 - Only one job can run at a time (a second tab or a second click is refused).
-- The model size and video quality must be valid values.
-- The **folder name** must be usable: characters Windows doesn't allow in folder names (such as `< > : " / \ | ? *`) are removed, a name that ends up empty is rejected, and a name that already exists is rejected so nothing is ever overwritten.
+- An unrecognized model size falls back to **medium**, and an invalid video quality value is rejected.
+- A **blank folder name** means automatic naming. If you type a name, characters Windows doesn't allow in folder names (such as `< > : " / \ | ? *`) are removed; if nothing is left after that, the name is rejected as not valid, and a name that already exists is rejected so nothing is ever overwritten.
 
 **While it runs**
 
