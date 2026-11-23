@@ -123,6 +123,13 @@ class Replay(unittest.TestCase):
         self.assertIn('src="video.mp4"', html)
         self.assertNotIn('id="video-data"', html)
 
+    def test_has_an_embedded_tab_icon(self):
+        import base64
+        html = replay.render_replay("Demo", "video.mp4", SEGS)
+        m = re.search(r'<link rel="icon" type="image/png" href="data:image/png;base64,([A-Za-z0-9+/=]+)">', html)
+        self.assertIsNotNone(m)
+        self.assertEqual(base64.b64decode(m.group(1))[1:4], b"PNG")
+
     def test_css_uses_variables(self):
         css = replay_css.CSS
         for var in ("--sub-font", "--sub-color", "--sub-size", "--sub-cue-bg", "--sub-weight", "--sub-style"):

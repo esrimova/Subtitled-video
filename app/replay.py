@@ -5,6 +5,7 @@ import mimetypes
 from pathlib import Path
 from replay_css import CSS
 from replay_js import JS
+from replay_icon import ICON_PNG_B64
 
 
 def render_replay(title: str, video_file: str, segments: list[dict], embed_mime: str | None = None) -> str:
@@ -18,6 +19,7 @@ def render_replay(title: str, video_file: str, segments: list[dict], embed_mime:
     parts.append("<head>")
     parts.append("<meta charset=\"utf-8\">")
     parts.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">")
+    parts.append("<link rel=\"icon\" type=\"image/png\" href=\"data:image/png;base64," + ICON_PNG_B64 + "\">")
     parts.append("<title>" + escaped_title + "</title>")
     parts.append("<style>" + CSS + "</style>")
     parts.append("</head>")
