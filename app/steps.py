@@ -6,8 +6,9 @@ EMBED_LIMIT = int(os.environ.get("AE_EMBED_LIMIT") or 200 * 1024 * 1024)
 
 
 def too_big_message(size_bytes: int) -> str:
-    return ("This video is %d MB, over the %d MB limit for a captioned replay that is a single HTML file. "
-            "Tick Save video as well to keep a separate copy that the replay plays from, or pick a lower video quality."
+    return ("This video is %d MB, over the %d MB limit for a captioned replay, which is a single HTML file "
+            "with the video inside. Pick a lower video quality, or untick Create captioned replay "
+            "(Save video alone has no size limit)."
             % (round(size_bytes / 1_048_576), EMBED_LIMIT // 1_048_576))
 
 
@@ -50,7 +51,7 @@ def resolve_outputs(selected: set[str], no_audio: bool, kind: str) -> dict:
 
     notes = []
     if "replay" in selected and "video" not in selected:
-        notes.append("The captioned replay is a single HTML file with the video inside it, so no separate video file is kept. Videos over 200 MB don't fit inside the page: tick Save video too to keep a separate copy.")
+        notes.append("The captioned replay is a single HTML file with the video inside it, so no separate video file is kept. Videos over 200 MB don't fit inside the page.")
     if temporary == ["audio"]:
         notes.append("The audio is processed temporarily and not kept.")
 

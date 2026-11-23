@@ -311,7 +311,7 @@ class SmallEmbedLimit(ServerCase):
         evs = self.events()
         self.assertEqual(evs[-1]["type"], "error", evs[-3:])
         self.assertIn("limit", evs[-1]["message"])
-        self.assertIn("Save video", evs[-1]["message"])
+        self.assertIn("untick", evs[-1]["message"])
         self.assertNotIn("transcribe", [e.get("stage") for e in evs if e["type"] == "stage"])
         self.assertFalse((self.out / "grande").exists())
         for _ in range(50):  # the server removes the temporary folder just after reporting the error
@@ -320,15 +320,21 @@ class SmallEmbedLimit(ServerCase):
             time.sleep(0.1)
         self.assertEqual([p.name for p in self.out.iterdir()], [])
 
-    def test_replay_plus_video_over_the_limit_plays_from_the_saved_video(self):
+    def test_replay_plus_video_over_the_limit_also_stops_and_saves_nothing(self):
         self.call("/api/check", {"source": CLIP})
         code, r = self.call("/api/start", {"source": CLIP, "outputs": ["video", "replay"], "folder_name": "grande3",
                                            "model": "small", "quality": "best"})
         self.assertTrue(r["ok"], r)
         evs = self.events()
+        self.assertEqual(evs[-1]["type"], "error", evs[-3:])
+        self.assertIn("limit", evs[-1]["message"])
+        self.assertFalse((self.out / "grande3").exists())
+
+    def test_video_alone_has_no_size_limit(self):
+        self.call("/api/check", {"source": CLIP})
+        code, r = self.call("/api/start", {"source": CLIP, "outputs": ["video"], "folder_name": "solo video",
+                                           "model": "small", "quality": "best"})
+        self.assertTrue(r["ok"], r)
+        evs = self.events()
         self.assertEqual(evs[-1]["type"], "done", evs[-3:])
-        folder = self.out / "grande3"
-        self.assertEqual(sorted(p.name for p in folder.iterdir()), sorted(["video.mp4", "index.html"]))
-        html = (folder / "index.html").read_text(encoding="utf-8")
-        self.assertIn('src="video.mp4"', html)
-        self.assertNotIn('id="video-data"', html)
+        self.assertEqual([p.name for p in (self.out / "solo video").iterdir()], ["video.mp4"])

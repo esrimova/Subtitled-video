@@ -149,7 +149,7 @@ def main():
     media = Path(job["target"]) if job["kind"] == "file" else download(job, stg)
     duration = job.get("duration") or 0
 
-    if "replay" in keep and "video" not in keep and media.stat().st_size > steps.EMBED_LIMIT:
+    if "replay" in keep and media.stat().st_size > steps.EMBED_LIMIT:
         raise RuntimeError(steps.too_big_message(media.stat().st_size))  # before any slow work
 
     wav = make_audio(media, stg, duration) if "audio" in pipe else None
@@ -177,13 +177,10 @@ def main():
         files.append("transcript.md")
     if "replay" in keep:
         stage("captions", 0, "Building captions…")
-        embed = (video_dest if video_dest else media).stat().st_size <= steps.EMBED_LIMIT
-        video_name = video_dest.name if "video" in keep else ""
-        if "video" in keep and not embed:
-            notice = "The video is over %d MB, so the replay plays from the saved video file. Keep both files together." % (steps.EMBED_LIMIT // 1_048_576)
-        # When embed=True and "video" not in keep, video_name stays "" and we read from media
+        # Every replay is a single file that plays on its own; the video is read from the saved copy
+        # when there is one (it may have been moved there), otherwise from the temporary media.
         read_from = video_dest if video_dest else media
-        replay.write_replay(stg / "index.html", job["title"], read_from, segments, embed, video_name)
+        replay.write_replay(stg / "index.html", job["title"], read_from, segments, True)
         files.append("index.html")
         stage("captions", 100, "Captions ready")
 
